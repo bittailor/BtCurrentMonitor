@@ -65,7 +65,7 @@ function currentGraphController($scope, $interval, graphService, captureService)
     var voltageScale = d3.scale.linear().domain([graphService.voltage.min, graphService.voltage.max]).nice();
 
     var graph = new Rickshaw.Graph({
-        element: angular.element('#current-graph').get(0),
+        element: angular.element('#graph').get(0),
         renderer: 'line',
         height: '400',
         padding: {
@@ -97,14 +97,14 @@ function currentGraphController($scope, $interval, graphService, captureService)
         orientation: 'left',
         tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
         scale: currentScale,
-        element: angular.element('#current-graph-y-axis').get(0)
+        element: angular.element('#graph-y-axis-current').get(0)
     });
     new Rickshaw.Graph.Axis.Y.Scaled({
         graph: graph,
         orientation: 'right',
         tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
         scale: voltageScale,
-        element: angular.element('#current-graph-y2-axis').get(0)
+        element: angular.element('#graph-y-axis-voltage').get(0)
     });
 
     graph.render();

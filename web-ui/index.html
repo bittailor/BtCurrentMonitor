@@ -64,9 +64,7 @@
                         </form>
                         <input type="number" class="form-control" ng-model="graphs.settings.voltage.min" style="width: 75px;">
                         <input type="number" class="form-control" ng-model="graphs.settings.voltage.max" style="width: 75px;">
-
                     </div>
-                    <p>{{graphs.current.length}}</p>
                 </div>
 
             </div>
@@ -74,15 +72,16 @@
 
         <div class="row">
             <div class="graph-container" ng-controller="currentGraphController as graph">
-                <div id="current-graph-y-axis"></div>
-                <div id="current-graph"></div>
-                <div id="current-graph-y2-axis"></div>
+                <div id="graph-y-axis-current"></div>
+                <div id="graph"></div>
+                <div id="graph-y-axis-voltage"></div>
             </div>
         </div>        
     </div>
 
     <toaster-container></toaster-container>
 
+    <!-- jQuery libraries -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 
     <!-- Angular JS libraries -->
@@ -100,18 +99,12 @@
     <!-- Paho MQTT libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js"></script>
 
+    <!-- Rickshaw libraries -->
     <script src="https://d3js.org/d3.v3.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/rickshaw/1.6.0/rickshaw.js"></script>
 
+    <!-- app -->
     <script src="/app/index.js"></script>
-
-    <!--
-    <script src="/app/index.route.js"></script>
-    <script src="/app/index.run.js"></script>
-    <script src="/app/mqtt.service.js"></script>
-    <script src="/app/cmd.controller.js"></script>
-    <script src="/app/disconnected.controller.js"></script>
-    -->
 
 </body>
 
