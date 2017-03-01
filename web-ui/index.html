@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>BT Current Monitor</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/rickshaw/1.6.0/rickshaw.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/angularjs-toaster/1.1.0/toaster.min.css"  />
+    <link rel="stylesheet" href="index.css" />
+</head>
+
+<body ng-app="BtCurrentMonitorApp">
+    <div class="container">
+        <div class="row equal controll-row">
+            <div class="col-md-4" ng-controller="mqttController as mqtt">
+                <div class="panel panel-default" ng-class="mqtt.service.state === 'connected' ? 'panel-success' : 'panel-warning'">
+                    <div class="panel-heading">MQTT <small>{{mqtt.service.state}}</small></div>
+                    <div class="panel-body">
+                        <form>
+                            <div class="form-group">
+                                <label for="hostname">MQTT hostname</label>
+                                <input type="text" class="form-control" id="hostname" placeholder="hostname" ng-model="mqtt.settings.hostname">
+                            </div>
+                            <div class="form-group">
+                                <label for="port">MQTT websocket port</label>
+                                <input type="number" class="form-control" id="port" placeholder="8080" ng-model="mqtt.settings.port">
+                            </div>
+                            <button ng-disabled="mqtt.service.state !== 'disconnected'" type="button" class="btn" ng-click="mqtt.connect()">Connect</button>
+                            <button ng-disabled="mqtt.service.state !== 'connected'" type="button" class="btn" ng-click="mqtt.disconnect()">Disconnect</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="panel panel-default">
+                    <div class="panel-heading ">Current Monitor</div>
+                    <div class="panel-body">
+                        <button type="button" class="btn btn-success" ng-click="mqtt.connect()">Start</button>
+                        <button type="button" class="btn btn-success" ng-click="mqtt.connect()">Stop</button>
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-md-4" ng-controller="graphsController as graphs">
+                <div class="panel panel-default">
+                    <div class="panel-heading">Graphs</div>
+                    <div class="panel-body">
+                        <form class="form-inline">
+                            <div class="form-group">
+                                <label for="min">Current : </label>
+                                <input type="number" class="form-control" id="min" placeholder="-1" ng-model="graphs.settings.current.min" style="width: 75px;">
+                            </div>
+                            <div class="form-group">
+                                <label for="max"> - </label>
+                                <input type="number" class="form-control" id="max" placeholder="5" ng-model="graphs.settings.current.max" style="width: 75px;">
+                            </div>
+                            <div class="form-group">
+                                <label for="length"> - </label>
+                                <input type="number" class="form-control" id="length" placeholder="5" ng-model="graphs.settings.length" ng-model-options="{updateOn: 'default blur', debounce: { 'default': 500, 'blur': 0 }}" style="width: 75px;">
+                            </div>
+                        </form>
+                        <input type="number" class="form-control" ng-model="graphs.settings.voltage.min" style="width: 75px;">
+                        <input type="number" class="form-control" ng-model="graphs.settings.voltage.max" style="width: 75px;">
+
+                    </div>
+                    <p>{{graphs.current.length}}</p>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="graph-container" ng-controller="currentGraphController as graph">
+                <div id="current-graph-y-axis"></div>
+                <div id="current-graph"></div>
+                <div id="current-graph-y2-axis"></div>
+            </div>
+        </div>        
+    </div>
+
+    <toaster-container></toaster-container>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
+    <!-- Angular JS libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.6.1/angular.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.6.1/angular-animate.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.6.1/angular-aria.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.6.1/angular-messages.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.4.2/angular-ui-router.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ngStorage/0.3.11/ngStorage.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angularjs-toaster/1.2.0/toaster.min.js"></script>
+
+    <!-- Angular Material libraries -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+    <!-- Paho MQTT libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js"></script>
+
+    <script src="https://d3js.org/d3.v3.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rickshaw/1.6.0/rickshaw.js"></script>
+
+    <script src="/app/index.js"></script>
+
+    <!--
+    <script src="/app/index.route.js"></script>
+    <script src="/app/index.run.js"></script>
+    <script src="/app/mqtt.service.js"></script>
+    <script src="/app/cmd.controller.js"></script>
+    <script src="/app/disconnected.controller.js"></script>
+    -->
+
+</body>
+
+</html>

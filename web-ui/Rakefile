@@ -1,0 +1,5 @@
+task :serve do 
+    sh "browser-sync start --server --files ./**/*.*"
+end
+
+task :default => :serve

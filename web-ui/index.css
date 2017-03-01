@@ -1,0 +1,65 @@
+.equal {
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+}
+
+.divider {
+  margin-bottom: 30px;  
+}
+
+div[class*='col-'] {
+  flex:1 1 auto;
+  display: flex;
+}
+.panel {
+  flex:1 0 100%;
+}
+
+
+.controll-row{
+    margin-bottom: 30px;
+}
+
+.graph-container {
+        position: relative;
+        font-family: Arial, Helvetica, sans-serif;
+        width: 100%;
+}
+
+#current-graph {
+        position: relative;
+        left: 40px;
+        margin-right: 40px;
+}
+
+#current-graph-y-axis  {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 40px;
+}
+
+#current-graph-y2-axis  {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: -40px;
+        width: 40px;
+}
+
+
+
+/* get rid off spinners */
+        /* For Firefox */
+input[type='number'] {
+    -moz-appearance:textfield;
+}
+        /* Webkit browsers like Safari and Chrome */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
