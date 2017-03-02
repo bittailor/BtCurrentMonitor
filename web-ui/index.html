@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <title>BT Current Monitor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/rickshaw/1.6.0/rickshaw.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/angularjs-toaster/1.1.0/toaster.min.css"  />
@@ -14,6 +15,9 @@
 
 <body ng-app="BtCurrentMonitorApp">
     <div class="container">
+        
+        
+
         <div class="row equal controll-row">
             <div class="col-md-4" ng-controller="mqttController as mqtt">
                 <div class="panel panel-default" ng-class="mqtt.service.state === 'connected' ? 'panel-success' : 'panel-warning'">
@@ -49,34 +53,43 @@
                     <div class="panel-heading">Graphs</div>
                     <div class="panel-body">
                         <form class="form-inline">
-                            <div class="form-group">
-                                <label for="min">Current : </label>
-                                <input type="number" class="form-control" id="min" placeholder="-1" ng-model="graphs.settings.current.min" style="width: 75px;">
-                            </div>
-                            <div class="form-group">
-                                <label for="max"> - </label>
-                                <input type="number" class="form-control" id="max" placeholder="5" ng-model="graphs.settings.current.max" style="width: 75px;">
-                            </div>
-                            <div class="form-group">
-                                <label for="length"> - </label>
-                                <input type="number" class="form-control" id="length" placeholder="5" ng-model="graphs.settings.length" ng-model-options="{updateOn: 'default blur', debounce: { 'default': 500, 'blur': 0 }}" style="width: 75px;">
-                            </div>
+                            <span class="badge label-badge current">I</span>
+                            <input type="number" class="form-control" ng-model="graphs.settings.current.min" style="width: 75px;">
+                            <input type="number" class="form-control" ng-model="graphs.settings.current.max" style="width: 75px;">
                         </form>
-                        <input type="number" class="form-control" ng-model="graphs.settings.voltage.min" style="width: 75px;">
-                        <input type="number" class="form-control" ng-model="graphs.settings.voltage.max" style="width: 75px;">
+                        <form class="form-inline">
+                            <span class="badge label-badge voltage">V</span>
+                            <input type="number" class="form-control" ng-model="graphs.settings.voltage.min" style="width: 75px;">
+                            <input type="number" class="form-control" ng-model="graphs.settings.voltage.max" style="width: 75px;">
+                        </form>
+                        <form class="form-inline">
+                            <span class="badge label-badge"><i class="fa fa-eye" aria-hidden="true"></i></span>
+                            <input type="number" class="form-control" ng-model="graphs.settings.length" ng-model-options="{updateOn: 'default blur', debounce: { 'default': 500, 'blur': 0 }}" style="width: 75px;">
+                            <input type="number" class="form-control" ng-model="graphs.settings.offset" style="width: 75px;">
+                        </form>  
+                        <form class="form-inline">
+                            <span class="badge label-badge"><i class="fa fa-database" aria-hidden="true"></i></span>                           
+                            <input type="text" class="form-control" value="{{graphs.captureService.captureLength()}}" style="width: 75px;" readonly>
+                            <input type="number" class="form-control" ng-model="graphs.captureService.captureSize" style="width: 75px;">
+                        </form>                     
                     </div>
                 </div>
-
             </div>
         </div>
 
-        <div class="row">
+       
+        
+        <div class="row">          
             <div class="graph-container" ng-controller="currentGraphController as graph">
                 <div id="graph-y-axis-current"></div>
                 <div id="graph"></div>
                 <div id="graph-y-axis-voltage"></div>
             </div>
-        </div>        
+        </div>   
+
+        <div class="row slider-row" ng-controller="sliderController as slider">
+            <input ng-show="slider.max() !== slider.min()" type="range" name="range" ng-model="slider.value" ng-model-options="{ getterSetter: true }" min="{{slider.min()}}"  max="{{slider.max()}}">
+        </div>     
     </div>
 
     <toaster-container></toaster-container>

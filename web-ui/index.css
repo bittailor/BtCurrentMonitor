@@ -1,3 +1,25 @@
+.label-badge {
+        width: 3em;
+        font-size: large;
+}
+
+.current {
+        background-color: steelblue;
+}
+
+.voltage {
+        background-color: red;
+}
+
+.form-inline {
+        margin-bottom: 5px;
+}
+
+.slider-row {
+        margin-top: 20px;
+        margin-left: 30px;
+}
+
 /* graph */ 
 
 .graph-container {
