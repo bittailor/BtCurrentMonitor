@@ -4,4 +4,23 @@ task :serve do
     end
 end
 
-task :default => :serve
+namespace :firmware do 
+    
+    directory 'firmware/bin'
+
+    task :compile => 'firmware/bin' do 
+        Dir.chdir('firmware') do
+            sh "particle compile photon . --saveTo bin/firmware.bin --target 0.6.0"
+        end
+    end
+
+    task :flash do 
+        Dir.chdir('firmware') do
+            sh "particle flash bt-photon-1 --target 0.6.0"
+        end
+    end
+
+end
+
+
+task :default => 'firmware:compile'
