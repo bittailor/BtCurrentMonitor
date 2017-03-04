@@ -8,10 +8,14 @@
     "showOutput": "always",
     "tasks": [
         {
-            "taskName": "build"
+            "taskName": "build",
+            "command": "rake"
+
         },
         {
-            "taskName": "firmware:flash"
+            "taskName": "flash",
+            "command": "rake",
+            "args": ["firmware:flash"]
         }
     ]
 }

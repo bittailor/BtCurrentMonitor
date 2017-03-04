@@ -1,26 +1,26 @@
-#include <Adafruit_MQTT.h>
-#include <Adafruit_MQTT_SPARK.h>
-#include <adafruit-ina219.h>
+#include "application.h"
+#include "MQTT.h"
+#include "adafruit-ina219.h"
 
 #define MQTT_SERVER      "piOne"
 #define MQTT_SERVERPORT  1883                   
 #define MQTT_USERNAME    ""
-#define MQTT_KEY         ""
+#define MQTT_PASSWORD    ""
+#define MQTT_CLIENT_NAME "BtCurrentMonitor"
+
+#define STATE_TOPIC   "/bt/multimeter/state"
+#define SENSORS_TOPIC "/bt/multimeter/sensors"
+#define COMMAND_TOPIC "/bt/multimeter/command"
 
 SYSTEM_THREAD(ENABLED);
 
-TCPClient client;
-Adafruit_MQTT_SPARK mqtt(&client, MQTT_SERVER, MQTT_SERVERPORT, MQTT_USERNAME, MQTT_KEY);
+void callback(char* topic, byte* payload, unsigned int length);
+void MQTT_connect();
 
-Adafruit_MQTT_Publish statePublish = Adafruit_MQTT_Publish(&mqtt, "/bt/multimeter/state");
-Adafruit_MQTT_Publish senorsPublish = Adafruit_MQTT_Publish(&mqtt, "/bt/multimeter/sensors");
-
-Adafruit_MQTT_Subscribe commandSubscription  = Adafruit_MQTT_Subscribe(&mqtt, "/bt/multimeter/command");
-
+MQTT client(MQTT_SERVER, MQTT_SERVERPORT, callback);
 Adafruit_INA219 currentSensor;
 unsigned long lastLoop;
-
-void MQTT_connect();
+unsigned long loopCounter = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -29,9 +29,6 @@ void setup() {
   Wire.setSpeed(CLOCK_SPEED_400KHZ);
   currentSensor.begin();
   currentSensor.setCalibration_16V_400mA();
-  
-  //mqtt.subscribe(&onoffbutton);
-  //mqtt.subscribe(&slider);
 
   lastLoop = millis();
 }
@@ -45,14 +42,14 @@ void loop() {
   lastLoop = now;
   float current = currentSensor.getCurrent_mA();
   float voltage = currentSensor.getBusVoltage_V();
-  unsigned long read = millis() - now;
-
+  
   char messageBuffer[MAX_MESSAGE_LENGTH] = {0};
   snprintf(messageBuffer, MAX_MESSAGE_LENGTH, "{\"l\":%lu,\"c\":%f,\"v\":%f,\"t\":%lu}", loop, current, voltage, now);
   Serial.print(F("\nSending photocell val "));
   Serial.print(messageBuffer);
   Serial.print("... ");
-  if (! senorsPublish.publish(messageBuffer)) {
+  ;
+  if (! client.publish(SENSORS_TOPIC,messageBuffer)) {
     Serial.println(F("Failed"));
   } else {
     Serial.println(F("OK!"));
@@ -60,23 +57,37 @@ void loop() {
 }
 
 void MQTT_connect() {
-  if (mqtt.connected()) {
+  if (client.isConnected()) {
+    loopCounter++;
+    if((loopCounter % 200) == 0) {
+      client.loop();
+    }     
     return;
   }
 
   Serial.print("Connecting to MQTT... ");
 
   uint8_t retries = 3;
-  int8_t ret;
-  while ((ret = mqtt.connect()) != 0) {
-       Serial.println(mqtt.connectErrorString(ret));
-       Serial.println("Retrying MQTT connection in 5 seconds...");
-       mqtt.disconnect();
+  while (!client.connect(MQTT_CLIENT_NAME, MQTT_USERNAME, MQTT_PASSWORD)) {
+       client.disconnect();
        delay(5000); 
        retries--;
        if (retries == 0) {
          return;
        }
   }
+  if(client.subscribe(COMMAND_TOPIC)) {
+    client.publish(STATE_TOPIC,"subscribe OK");
+  } else {
+    client.publish(STATE_TOPIC,"subscribe FAILED");
+  }
   Serial.println("MQTT Connected!");
+}
+
+void callback(char* topic, byte* payload, unsigned int length) {
+  char messageBuffer[MAX_MESSAGE_LENGTH] = {0};
+  memcpy(messageBuffer,payload,length);
+  messageBuffer[length] = 0;
+  
+  client.publish(STATE_TOPIC, messageBuffer);
 }
