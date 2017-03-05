@@ -44,6 +44,34 @@ function mqttController($localStorage, mqttService) {
 //
 //---------------------------------------------------------------------------------------------
 
+module.controller('currentMonitorController', currentMonitorController);
+
+function currentMonitorController(mqttService, currentMonitorService) {
+    var vm = this;
+    vm.start = {
+        can : function() {
+            return mqttService.state === 'connected' && currentMonitorService.state() !== 'measure' ; 
+        },
+        execute: function() {
+            currentMonitorService.start();
+        } 
+    };
+    vm.stop = {
+        can : function() {
+            return currentMonitorService.state() === 'measure' ; 
+        },
+        execute: function() {
+            currentMonitorService.stop();
+        } 
+    };
+
+    vm.state = currentMonitorService.state;
+}
+
+//---------------------------------------------------------------------------------------------
+//
+//---------------------------------------------------------------------------------------------
+
 
 module.controller('graphsController', graphsController);
 
@@ -176,12 +204,42 @@ function currentGraphController($scope, $interval, graphService, captureService)
 //
 //---------------------------------------------------------------------------------------------
 
+module.factory('currentMonitorService', currentMonitorService);
+
+function currentMonitorService(mqttService, captureService) {
+    var service = {};
+
+    service.start = function() {
+        captureService.clear();
+        mqttService.publish('/bt/multimeter/command', 'start');
+    };
+
+    service.stop = function() {
+        mqttService.publish('/bt/multimeter/command', 'stop');    
+    };
+
+    service.state = function() {
+        return captureService.state;    
+    };
+
+    return service; 
+}
+  
+
+//---------------------------------------------------------------------------------------------
+//
+//---------------------------------------------------------------------------------------------
+
 module.factory('mqttService', mqttService);
 
 function mqttService($log, $rootScope, toaster, captureService) {
+    var sensorTopic = '/bt/multimeter/sensors';
+    var stateTopic = '/bt/multimeter/state';
+    
     var service = {};
     service.connect = connect;
     service.disconnect = disconnect;
+    service.publish = publish;
     service.state = 'disconnected';
     service.failure = undefined;
     service.settings = {
@@ -202,7 +260,8 @@ function mqttService($log, $rootScope, toaster, captureService) {
 
     function onConnect() {
         $log.log('... MQTT connected');
-        service.client.subscribe('#');
+        service.client.subscribe(sensorTopic);
+        service.client.subscribe(stateTopic);
         $rootScope.safeApply(function () {
             service.state = 'connected';
             service.failure = undefined;
@@ -232,8 +291,16 @@ function mqttService($log, $rootScope, toaster, captureService) {
     }
 
     function onMessageArrived(message) {
-        var data = JSON.parse(message.payloadString);
-        captureService.push(data);
+        if(message.destinationName === sensorTopic) {
+            var sensorData = JSON.parse(message.payloadString);
+            captureService.push(sensorData);
+        }
+        if(message.destinationName === stateTopic) {
+            $rootScope.safeApply(function(){
+                var stateData = JSON.parse(message.payloadString);
+                captureService.stateUpdate(stateData);
+            });    
+        }
     }
 
     function connect(settings) {
@@ -252,6 +319,13 @@ function mqttService($log, $rootScope, toaster, captureService) {
         $log.log('MQTT disconnect ...');
         service.state = 'disconnected';
         service.client.disconnect();
+    }
+
+    function publish(topic, payload) {
+        var message = new Paho.MQTT.Message(payload);
+        message.destinationName = topic;
+        message.qos = 1;
+        service.client.send(message);
     }
 
     return service;
@@ -288,12 +362,16 @@ module.factory('captureService', captureService);
 function captureService() {
     var service = {
         captureSize: 50000,
+        l:0,
+        state: 'offline',
         captureLength: captureLength,
+        clear: clear,
         push: push,
+        stateUpdate: stateUpdate,
         getCurrent: getCurrent,
-        getVoltage: getVoltage
+        getVoltage: getVoltage,
+        
     };
-
 
     var currentBuffer = new Array();
     var voltageBuffer = new Array();
@@ -302,7 +380,13 @@ function captureService() {
         return currentBuffer.length;
     }
 
+    function clear() {
+        currentBuffer = new Array();
+        voltageBuffer = new Array();
+    }
+
     function push(message) {
+        service.l = message.l;
         currentBuffer.push({
             x: message.t,
             y: message.c
@@ -317,6 +401,10 @@ function captureService() {
         while (voltageBuffer.length > service.captureSize) {
             voltageBuffer.shift();
         }
+    }
+
+    function stateUpdate(message) {      
+        service.state = message.state; 
     }
 
     function getCurrent(count, offset) {
@@ -352,49 +440,3 @@ function captureService() {
 //---------------------------------------------------------------------------------------------
 //
 //---------------------------------------------------------------------------------------------
-
-
-
-
-//---------------------------------------------------------------------------------------------
-//
-//---------------------------------------------------------------------------------------------
-
-function RingBuffer(capacity) {
-    this._array = new Array(capacity);
-    this._start = 0;
-    this._size = 0;
-}
-
-RingBuffer.prototype.push = function (item) {
-    var newSize = this._size + 1;
-    if (this._size === this._array.length) {
-        this._start = (this._start + 1) % this._array.length;
-        newSize = this._size;
-
-    }
-    var index = (this._start + this._size) % this._array.length;
-    this._array[index] = item;
-    this._size = newSize;
-};
-
-RingBuffer.prototype.last = function (count) {
-    if (count > this._size) {
-        count = this._size;
-    }
-    var start = (this._start + this._size - count) % this._array.length;
-    var rawArray = this._array;
-    return {
-        length: count,
-        filter: function (callback, thisArg) {
-            var result = new Array();
-            for (var index = 0; index < count; index++) {
-                var item = rawArray[(start + index) % rawArray.length];
-                if (callback.call(thisArg, item, index, rawArray)) {
-                    result.push(item);
-                }
-            }
-            return result;
-        }
-    };
-};

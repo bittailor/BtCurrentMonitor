@@ -24,6 +24,9 @@
                     <div class="panel-heading">MQTT <small>{{mqtt.service.state}}</small></div>
                     <div class="panel-body">
                         <form>
+                            <button ng-disabled="mqtt.service.state !== 'disconnected'" type="button" class="btn btn-default" ng-click="mqtt.connect()">Connect</button>
+                            <button ng-disabled="mqtt.service.state !== 'connected'" type="button" class="btn btn-default" ng-click="mqtt.disconnect()">Disconnect</button>
+                            <br> <br>
                             <div class="form-group">
                                 <label for="hostname">MQTT hostname</label>
                                 <input type="text" class="form-control" id="hostname" placeholder="hostname" ng-model="mqtt.settings.hostname">
@@ -32,18 +35,16 @@
                                 <label for="port">MQTT websocket port</label>
                                 <input type="number" class="form-control" id="port" placeholder="8080" ng-model="mqtt.settings.port">
                             </div>
-                            <button ng-disabled="mqtt.service.state !== 'disconnected'" type="button" class="btn" ng-click="mqtt.connect()">Connect</button>
-                            <button ng-disabled="mqtt.service.state !== 'connected'" type="button" class="btn" ng-click="mqtt.disconnect()">Disconnect</button>
                         </form>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-4" ng-controller="currentMonitorController as currentMonitor">
                 <div class="panel panel-default">
-                    <div class="panel-heading ">Current Monitor</div>
+                    <div class="panel-heading ">Current Monitor <small>{{currentMonitor.state()}}</small></div>
                     <div class="panel-body">
-                        <button type="button" class="btn btn-success" ng-click="mqtt.connect()">Start</button>
-                        <button type="button" class="btn btn-success" ng-click="mqtt.connect()">Stop</button>
+                        <button ng-disabled="!currentMonitor.start.can()" type="button" class="btn btn-default" ng-click="currentMonitor.start.execute()">Start</button>
+                        <button ng-disabled="!currentMonitor.stop.can()" type="button" class="btn btn-default" ng-click="currentMonitor.stop.execute()">Stop</button>
                     </div>
                 </div>
 
@@ -71,7 +72,8 @@
                             <span class="badge label-badge"><i class="fa fa-database" aria-hidden="true"></i></span>                           
                             <input type="text" class="form-control" value="{{graphs.captureService.captureLength()}}" style="width: 75px;" readonly>
                             <input type="number" class="form-control" ng-model="graphs.captureService.captureSize" style="width: 75px;">
-                        </form>                     
+                        </form> 
+                        {{graphs.captureService.l}}                    
                     </div>
                 </div>
             </div>
