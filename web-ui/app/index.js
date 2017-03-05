@@ -50,7 +50,7 @@ function currentMonitorController(mqttService, currentMonitorService) {
     var vm = this;
     vm.start = {
         can : function() {
-            return mqttService.state === 'connected' && currentMonitorService.state() !== 'measure' ; 
+            return mqttService.state === 'connected' && currentMonitorService.state() === 'idle' ; 
         },
         execute: function() {
             currentMonitorService.start();
