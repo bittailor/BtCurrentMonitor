@@ -2,92 +2,139 @@
 #include "MQTT.h"
 #include "adafruit-ina219.h"
 
-#define MQTT_SERVER      "piOne"
-#define MQTT_SERVERPORT  1883                   
-#define MQTT_USERNAME    ""
-#define MQTT_PASSWORD    ""
-#define MQTT_CLIENT_NAME "BtCurrentMonitor"
+#define MQTT_SERVER             "piOne"
+#define MQTT_SERVERPORT         1883                   
+#define MQTT_USERNAME           ""
+#define MQTT_PASSWORD           ""
+#define MQTT_sMqttCLIENT_NAME   "BtCurrentMonitor"
 
-#define STATE_TOPIC   "/bt/multimeter/state"
-#define SENSORS_TOPIC "/bt/multimeter/sensors"
-#define COMMAND_TOPIC "/bt/multimeter/command"
+#define STATE_TOPIC     "/bt/multimeter/state"
+#define SENSORS_TOPIC   "/bt/multimeter/sensors"
+#define COMMAND_TOPIC   "/bt/multimeter/command"
+
+#define MAX_MESSAGE_LENGTH 100
 
 SYSTEM_THREAD(ENABLED);
 
-void callback(char* topic, byte* payload, unsigned int length);
-void MQTT_connect();
+template<typename T, size_t n> size_t arrayLength(T(&)[n]) { return n; }
 
-MQTT client(MQTT_SERVER, MQTT_SERVERPORT, callback);
-Adafruit_INA219 currentSensor;
-unsigned long lastLoop;
-unsigned long loopCounter = 0;
+typedef void (*CommandFunction)();
+struct Command {
+  const char* name;
+  CommandFunction function;
+};
+
+void mqttCallback(char* topic, byte* payload, unsigned int length);
+bool mqttConnect();
+void measure();
+void publishState(const char* state);
+void onCommandStart();
+void onCommandStop();
+CommandFunction findCommandFunction(const char* name);
+
+MQTT sMqttClient(MQTT_SERVER, MQTT_SERVERPORT, mqttCallback);
+Adafruit_INA219 sCurrentSensor;
+
+bool sMeasure = false;
+unsigned long sLoopCounter = 0;
+unsigned long sMillisLastMeasureLoop;
+
+Command sCommands[] = {
+  {"start",onCommandStart},
+  {"stop",onCommandStop}
+}; 
 
 void setup() {
   Serial.begin(115200);
-  delay(10);
-
   Wire.setSpeed(CLOCK_SPEED_400KHZ);
-  currentSensor.begin();
-  currentSensor.setCalibration_16V_400mA();
-
-  lastLoop = millis();
+  sCurrentSensor.begin();
+  sCurrentSensor.setCalibration_16V_400mA();
+  sMillisLastMeasureLoop = millis();
 }
 
-static const size_t MAX_MESSAGE_LENGTH = 100;
-
 void loop() {
-  MQTT_connect();
+  bool connected = mqttConnect();
+  if (connected && sMeasure) {
+    measure();
+  }
+}
+
+void measure(){
   unsigned long now = millis();
-  unsigned long loop = now - lastLoop;
-  lastLoop = now;
-  float current = currentSensor.getCurrent_mA();
-  float voltage = currentSensor.getBusVoltage_V();
+  unsigned long loop = now - sMillisLastMeasureLoop;
+  sMillisLastMeasureLoop = now;
+  float current = sCurrentSensor.getCurrent_mA();
+  float voltage = sCurrentSensor.getBusVoltage_V();
   
   char messageBuffer[MAX_MESSAGE_LENGTH] = {0};
   snprintf(messageBuffer, MAX_MESSAGE_LENGTH, "{\"l\":%lu,\"c\":%f,\"v\":%f,\"t\":%lu}", loop, current, voltage, now);
-  Serial.print(F("\nSending photocell val "));
-  Serial.print(messageBuffer);
-  Serial.print("... ");
-  ;
-  if (! client.publish(SENSORS_TOPIC,messageBuffer)) {
-    Serial.println(F("Failed"));
-  } else {
-    Serial.println(F("OK!"));
-  }
+  sMqttClient.publish(SENSORS_TOPIC,messageBuffer);
 }
 
-void MQTT_connect() {
-  if (client.isConnected()) {
-    loopCounter++;
-    if((loopCounter % 200) == 0) {
-      client.loop();
+bool mqttConnect() {
+  if (sMqttClient.isConnected()) {
+    sLoopCounter++;
+    if((sLoopCounter % 200) == 0) {
+      sMqttClient.loop();
     }     
-    return;
+    return true;
   }
 
-  Serial.print("Connecting to MQTT... ");
+  int8_t connectRetries = 3;
+  while (!sMqttClient.connect(MQTT_sMqttCLIENT_NAME, MQTT_USERNAME, MQTT_PASSWORD, STATE_TOPIC, MQTT::QOS1, 1, "{\"state\":\"offline\"}")) {
+    sMqttClient.disconnect();
+    delay(5000); 
+    connectRetries--;
+    if (connectRetries < 0) {
+      return false;
+    }
+  }
 
-  uint8_t retries = 3;
-  while (!client.connect(MQTT_CLIENT_NAME, MQTT_USERNAME, MQTT_PASSWORD)) {
-       client.disconnect();
-       delay(5000); 
-       retries--;
-       if (retries == 0) {
-         return;
-       }
+  int8_t subscribeRetries = 3;
+  while(!sMqttClient.subscribe(COMMAND_TOPIC)) {
+    delay(200); 
+    subscribeRetries--; 
+    if (subscribeRetries < 0) {
+      sMqttClient.disconnect();
+      return false;
+    } 
   }
-  if(client.subscribe(COMMAND_TOPIC)) {
-    client.publish(STATE_TOPIC,"subscribe OK");
-  } else {
-    client.publish(STATE_TOPIC,"subscribe FAILED");
-  }
-  Serial.println("MQTT Connected!");
+  publishState("idle");
+  return true;
 }
 
-void callback(char* topic, byte* payload, unsigned int length) {
+void publishState(const char* state) {
+  char messageBuffer[MAX_MESSAGE_LENGTH] = {0};
+  snprintf(messageBuffer, MAX_MESSAGE_LENGTH, "{\"state\":\"%s\",\"version\":\"%s\"}", state, System.version().c_str());
+  sMqttClient.publish(STATE_TOPIC, (const uint8_t *)messageBuffer
+  , strlen(messageBuffer), 1, MQTT::QOS1);
+}
+
+void mqttCallback(char* topic, byte* payload, unsigned int length) {
   char messageBuffer[MAX_MESSAGE_LENGTH] = {0};
   memcpy(messageBuffer,payload,length);
-  messageBuffer[length] = 0;
-  
-  client.publish(STATE_TOPIC, messageBuffer);
+  messageBuffer[length] = 0;  
+  CommandFunction function = findCommandFunction(messageBuffer); 
+  if(function != nullptr) {
+    function();
+  }
 }
+
+void onCommandStart() {
+  sMeasure = true;
+  publishState("measure");  
+}
+
+void onCommandStop() {
+  sMeasure = false;
+  publishState("idle"); 
+}
+
+CommandFunction findCommandFunction(const char* name) {
+  for(size_t i = 0 ; i < arrayLength(sCommands) ; i++) {
+    if(strcmp(sCommands[i].name, name) == 0) {
+      return sCommands[i].function;
+    }
+  }
+  return nullptr;
+} 

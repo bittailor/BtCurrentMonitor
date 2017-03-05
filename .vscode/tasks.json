@@ -5,11 +5,22 @@
     "command": "rake",
     "isShellCommand": true,
     "args": [],
-    "showOutput": "always",
-    "tasks": [
-        {
+    "showOutput": "silent",
+    "tasks": [{
             "taskName": "build",
-            "command": "rake"
+            "command": "rake",
+            "problemMatcher": {
+                "owner": "cpp",
+                "fileLocation": ["relative", "${workspaceRoot}/firmware"],
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            }
 
         },
         {
