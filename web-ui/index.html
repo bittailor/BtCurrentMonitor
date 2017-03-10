@@ -14,67 +14,49 @@
 </head>
 
 <body ng-app="BtCurrentMonitorApp">
-    <div class="container">
-
-
+    <div class="container" ng-controller="settingsController as settingsCtrl">
 
         <div class="row equal controll-row">
-            <div class="col-md-4" ng-controller="mqttController as mqtt">
+            <div class="col-md-6" ng-controller="mqttController as mqtt">
                 <div class="panel panel-default" ng-class="mqtt.service.state === 'connected' ? 'panel-success' : 'panel-warning'">
-                    <div class="panel-heading">MQTT <small>{{mqtt.service.state}}</small></div>
+                    <div class="panel-heading">MQTT <small>{{mqtt.service.state}}</small> <i class="fa fa-cogs pull-right" aria-hidden="true" ng-click="settingsCtrl.show = !settingsCtrl.show"></i></div>
                     <div class="panel-body">
                         <form>
                             <button ng-disabled="mqtt.service.state !== 'disconnected'" type="button" class="btn btn-default" ng-click="mqtt.connect()">Connect</button>
                             <button ng-disabled="mqtt.service.state !== 'connected'" type="button" class="btn btn-default" ng-click="mqtt.disconnect()">Disconnect</button>
-                            <br> <br>
-                            <div class="form-group">
-                                <label for="hostname">MQTT hostname</label>
-                                <input type="text" class="form-control" id="hostname" placeholder="hostname" ng-model="mqtt.settings.hostname">
-                            </div>
-                            <div class="form-group">
-                                <label for="port">MQTT websocket port</label>
-                                <input type="number" class="form-control" id="port" placeholder="8080" ng-model="mqtt.settings.port">
+                            <div ng-show="settingsCtrl.show">
+                                <br> <br>                               
+                                <div class="form-group">
+                                    <label for="hostname">MQTT hostname</label>
+                                    <input type="text" class="form-control" id="hostname" placeholder="hostname" ng-model="mqtt.settings.hostname">
+                                </div>
+                                <div class="form-group">
+                                    <label for="port">MQTT websocket port</label>
+                                    <input type="number" class="form-control" id="port" placeholder="8080" ng-model="mqtt.settings.port">
+                                </div>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4" ng-controller="currentMonitorController as currentMonitor">
+            <div class="col-md-6" ng-controller="currentMonitorController as currentMonitor">
                 <div class="panel panel-default">
-                    <div class="panel-heading ">Current Monitor <small>{{currentMonitor.state()}}</small></div>
+                    <div class="panel-heading ">Current Monitor <small>{{currentMonitor.state()}}</small> <i class="fa fa-cogs pull-right" aria-hidden="true" ng-click="settingsCtrl.show = !settingsCtrl.show"></i></div>
                     <div class="panel-body">
                         <button ng-disabled="!currentMonitor.start.can()" type="button" class="btn btn-default" ng-click="currentMonitor.start.execute()">Start</button>
                         <button ng-disabled="!currentMonitor.stop.can()" type="button" class="btn btn-default" ng-click="currentMonitor.stop.execute()">Stop</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-4" ng-controller="graphsController as graphs">
-                <div class="panel panel-default">
-                    <div class="panel-heading">Graphs</div>
-                    <div class="panel-body">
-                        <form class="form-inline">
-                            <span class="badge label-badge current">I</span>
-                            <input type="number" class="form-control" ng-model="graphs.settings.current.min" style="width: 75px;">
-                            <input type="number" class="form-control" ng-model="graphs.settings.current.max" style="width: 75px;">
-                        </form>
-                        <form class="form-inline">
-                            <span class="badge label-badge voltage">V</span>
-                            <input type="number" class="form-control" ng-model="graphs.settings.voltage.min" style="width: 75px;">
-                            <input type="number" class="form-control" ng-model="graphs.settings.voltage.max" style="width: 75px;">
-                        </form>
-                        <form class="form-inline">
-                            <span class="badge label-badge"><i class="fa fa-eye" aria-hidden="true"></i></span>
-                            <input type="number" class="form-control" ng-model="graphs.settings.length" ng-model-options="{updateOn: 'default blur', debounce: { 'default': 500, 'blur': 0 }}"
-                                style="width: 75px;">
-                            <input type="number" class="form-control" ng-model="graphs.settings.offset" style="width: 75px;">
-                        </form>
-                        <form class="form-inline">
-                            <span class="badge label-badge"><i class="fa fa-database" aria-hidden="true"></i></span>
-                            <input type="text" class="form-control" value="{{graphs.captureService.captureLength()}}" style="width: 75px;" readonly>
-                            <input type="number" class="form-control" ng-model="graphs.captureService.captureSize" style="width: 75px;">
-                        </form>
-                        {{graphs.captureService.l}}
+                        <div ng-show="settingsCtrl.show" ng-controller="graphsController as graphs">
+                            <br> <br>
+                            <form class="form-inline">
+                                <span class="badge label-badge"><i class="fa fa-database" aria-hidden="true"></i></span>
+                                <input type="text" class="form-control" value="{{graphs.captureService.captureLength()}}" style="width: 75px;" readonly>
+                                <input type="number" class="form-control" ng-model="graphs.captureService.captureSize" style="width: 75px;">
+                            </form>
+                             <form class="form-inline">
+                                <span class="badge label-badge"><i class="fa fa-clock-o" aria-hidden="true"></i></span>
+                                <input type="text" class="form-control" value="{{graphs.captureService.l}}" style="width: 75px;" readonly>                             
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -85,16 +67,16 @@
         <div class="row" ng-controller="graphsController as graphs">
             <div class="graph-container" ng-controller="currentGraphController as graph">
                 <div class="input-group current-max">
-                    <div class="input-group">
-                        <span class="input-group-addon current">I</span>
+                    <div class="input-group">  
+                        <span class="input-group-addon current">I</span>                
                         <input type="number" class="graph-axis-input form-control" ng-model="graphs.settings.current.max">
                         <span class="input-group-btn">
-                                <button class="btn btn-default" type="button" ng-click="graphs.increaseAxisMax(graphs.settings.current)">+</button>
-                                <button class="btn btn-default" type="button" ng-click="graphs.decreaseAxisMax(graphs.settings.current)">-</button>
+                                <button class="btn btn-default" type="button" ng-click="graphs.increaseAxisMax(graphs.settings.current)"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                                <button class="btn btn-default" type="button" ng-click="graphs.decreaseAxisMax(graphs.settings.current)"><i class="fa fa-minus" aria-hidden="true"></i></button>
                         </span>
                     </div>
                 </div>
-
+                
                 <div class="input-group view-length">
                     <div class="input-group">
                         <span class="input-group-btn">
@@ -102,7 +84,7 @@
                         </span>
                         <input type="number" class="graph-lenght-input form-control" ng-model="graphs.settings.length">
                         <span class="input-group-btn">
-                                <button class="btn btn-default" type="button" ng-click="graphs.increaseViewLength()">+</button>
+                                <button class="btn btn-default" type="button" ng-click="graphs.increaseViewLength()"><i class="fa fa-plus" aria-hidden="true"></i></button>
                         </span>
                     </div>
                 </div>
@@ -111,11 +93,10 @@
                 <div id="graph-y-axis-current"></div>
                 <div class="input-group current-min">
                     <div class="input-group">
-                        <span class="input-group-addon current">I</span>
                         <input type="number" class="graph-axis-input form-control" ng-model="graphs.settings.current.min">
                         <span class="input-group-btn">
-                                <button class="btn btn-default" type="button" ng-click="graphs.increaseAxisMin(graphs.settings.current)">+</button>
-                                <button class="btn btn-default" type="button" ng-click="graphs.decreaseAxisMin(graphs.settings.current)">-</button>
+                                <button class="btn btn-default" type="button" ng-click="graphs.increaseAxisMin(graphs.settings.current)"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                                <button class="btn btn-default" type="button" ng-click="graphs.decreaseAxisMin(graphs.settings.current)"><i class="fa fa-minus" aria-hidden="true"></i></button>
                         </span>
                     </div>
                 </div>
@@ -123,24 +104,21 @@
                 <div class="input-group voltage-max">
                     <div class="input-group">
                         <span class="input-group-btn">
-                                <button class="btn btn-default" type="button" ng-click="graphs.increaseAxisMax(graphs.settings.voltage)">+</button>
-                                <button class="btn btn-default" type="button" ng-click="graphs.decreaseAxisMax(graphs.settings.voltage)">-</button>
+                                <button class="btn btn-default" type="button" ng-click="graphs.increaseAxisMax(graphs.settings.voltage)"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                                <button class="btn btn-default" type="button" ng-click="graphs.decreaseAxisMax(graphs.settings.voltage)"><i class="fa fa-minus" aria-hidden="true"></i></button>
                         </span>
                         <input type="number" class="graph-axis-input form-control" ng-model="graphs.settings.voltage.max">
-                        <span class="input-group-addon voltage">I</span>
-
+                        <span class="input-group-addon voltage">V</span>
                     </div>
                 </div>
                 <div id="graph-y-axis-voltage"></div>
                 <div class="input-group voltage-min">
                     <div class="input-group">
                         <span class="input-group-btn">
-                                <button class="btn btn-default" type="button" ng-click="graphs.increaseAxisMin(graphs.settings.voltage)">+</button>
-                                <button class="btn btn-default" type="button" ng-click="graphs.decreaseAxisMin(graphs.settings.voltage)">-</button>
+                                <button class="btn btn-default" type="button" ng-click="graphs.increaseAxisMin(graphs.settings.voltage)"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                                <button class="btn btn-default" type="button" ng-click="graphs.decreaseAxisMin(graphs.settings.voltage)"><i class="fa fa-minus" aria-hidden="true"></i></button>
                         </span>
                         <input type="number" class="graph-axis-input form-control" ng-model="graphs.settings.voltage.min">
-                        <span class="input-group-addon voltage">I</span>
-
                     </div>
                 </div>
             </div>

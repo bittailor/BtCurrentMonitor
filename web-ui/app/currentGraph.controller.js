@@ -10,7 +10,7 @@ function currentGraphController($scope, $interval, graphService, captureService)
     var graph = new Rickshaw.Graph({
         element: angular.element('#graph').get(0),
         renderer: 'line',
-        height: '400',
+        height: '550',
         padding: {
             top: 0.1
         },
