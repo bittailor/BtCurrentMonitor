@@ -76,7 +76,7 @@ function mqttService($log, $rootScope, toaster, captureService) {
     function connect(settings) {
         $log.log('MQTT connect ...');
         service.state = 'connecting';
-        service.client = new Paho.MQTT.Client(settings.hostname, settings.port, 'web-current-monitor');
+        service.client = new Paho.MQTT.Client(settings.hostname, settings.port, 'web-current-monitor' + Math.random());
         service.client.onConnectionLost = onConnectionLost;
         service.client.onMessageArrived = onMessageArrived;
         service.client.connect({
