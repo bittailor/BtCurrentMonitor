@@ -2,16 +2,23 @@
     // See https://go.microsoft.com/fwlink/?LinkId=733558
     // for the documentation about the tasks.json format
     "version": "0.1.0",
-    "command": "rake",
+    "command": "gulp",
     "isShellCommand": true,
-    "args": [],
-    "showOutput": "silent",
+    "args": [
+        "--no-color"
+    ],
     "tasks": [{
-            "taskName": "build",
-            "command": "rake",
-            "problemMatcher": {
+        "taskName": "build",
+        "args": [],
+        "isBuildCommand": true,
+        "isBackground": false,
+        "problemMatcher": [
+            "$lessCompile",
+            "$tsc",
+            "$jshint",
+            {
                 "owner": "cpp",
-                "fileLocation": ["relative", "${workspaceRoot}/firmware"],
+                "fileLocation": ["relative", "${workspaceRoot}"],
                 "pattern": {
                     "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
                     "file": 1,
@@ -21,12 +28,6 @@
                     "message": 5
                 }
             }
-
-        },
-        {
-            "taskName": "flash",
-            "command": "rake",
-            "args": ["firmware:flash"]
-        }
-    ]
+        ]
+    }]
 }
