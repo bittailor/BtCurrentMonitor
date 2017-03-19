@@ -1,0 +1,4 @@
+language: node_js
+before_script:
+  - npm install -g gulp particle-cli
+script: gulp
