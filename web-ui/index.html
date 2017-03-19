@@ -19,34 +19,34 @@
         <div class="row equal controll-row">
             <div class="col-md-6" ng-controller="mqttController as mqtt">
                 <div class="panel panel-default" ng-class="mqtt.service.state === 'connected' ? 'panel-success' : 'panel-warning'">
-                    <div class="panel-heading">MQTT <small>{{mqtt.service.state}}</small> <i class="fa fa-cogs pull-right" aria-hidden="true" ng-click="settingsCtrl.show = !settingsCtrl.show"></i></div>
-                    <div class="panel-body">
-                        <form>
-                            <button ng-disabled="mqtt.service.state !== 'disconnected'" type="button" class="btn btn-default" ng-click="mqtt.connect()">Connect</button>
-                            <button ng-disabled="mqtt.service.state !== 'connected'" type="button" class="btn btn-default" ng-click="mqtt.disconnect()">Disconnect</button>
-                            <div ng-show="settingsCtrl.show">
-                                <br> <br>                               
-                                <div class="form-group">
-                                    <label for="hostname">MQTT hostname</label>
-                                    <input type="text" class="form-control" id="hostname" placeholder="hostname" ng-model="mqtt.settings.hostname">
-                                </div>
-                                <div class="form-group">
-                                    <label for="port">MQTT websocket port</label>
-                                    <input type="number" class="form-control" id="port" placeholder="8080" ng-model="mqtt.settings.port">
-                                </div>
+                    <div class="panel-heading">MQTT <small>{{mqtt.service.state}}</small>
+                    <button ng-disabled="mqtt.service.state !== 'disconnected'" type="button" class="btn btn-default" ng-click="mqtt.connect()">Connect</button>
+                    <button ng-disabled="mqtt.service.state !== 'connected'" type="button" class="btn btn-default" ng-click="mqtt.disconnect()">Disconnect</button>                  
+                    <i class="fa fa-cogs pull-right" aria-hidden="true" ng-click="settingsCtrl.show = !settingsCtrl.show"></i></div>
+                    <div class="panel-body" ng-show="settingsCtrl.show">                      
+                        <div>
+                            <br>                              
+                            <div class="form-group">
+                                <label for="hostname">MQTT hostname</label>
+                                <input type="text" class="form-control" id="hostname" placeholder="hostname" ng-model="mqtt.settings.hostname">
                             </div>
-                        </form>
+                            <div class="form-group">
+                                <label for="port">MQTT websocket port</label>
+                                <input type="number" class="form-control" id="port" placeholder="8080" ng-model="mqtt.settings.port">
+                            </div>
+                        </div>                     
                     </div>
                 </div>
             </div>
             <div class="col-md-6" ng-controller="currentMonitorController as currentMonitor">
                 <div class="panel panel-default">
-                    <div class="panel-heading ">Current Monitor <small>{{currentMonitor.state()}}</small> <i class="fa fa-cogs pull-right" aria-hidden="true" ng-click="settingsCtrl.show = !settingsCtrl.show"></i></div>
-                    <div class="panel-body">
-                        <button ng-disabled="!currentMonitor.start.can()" type="button" class="btn btn-default" ng-click="currentMonitor.start.execute()">Start</button>
-                        <button ng-disabled="!currentMonitor.stop.can()" type="button" class="btn btn-default" ng-click="currentMonitor.stop.execute()">Stop</button>
-                        <div ng-show="settingsCtrl.show" ng-controller="graphsController as graphs">
-                            <br> <br>
+                    <div class="panel-heading ">Current Monitor <small>{{currentMonitor.state()}}</small> 
+                    <button ng-disabled="!currentMonitor.start.can()" type="button" class="btn btn-default" ng-click="currentMonitor.start.execute()">Start</button>
+                    <button ng-disabled="!currentMonitor.stop.can()" type="button" class="btn btn-default" ng-click="currentMonitor.stop.execute()">Stop</button>                       
+                    <i class="fa fa-cogs pull-right" aria-hidden="true" ng-click="settingsCtrl.show = !settingsCtrl.show"></i></div>
+                    <div class="panel-body" ng-show="settingsCtrl.show">
+                        <div  ng-controller="graphsController as graphs">
+                            <br>
                             <form class="form-inline">
                                 <span class="badge label-badge"><i class="fa fa-database" aria-hidden="true"></i></span>
                                 <input type="text" class="form-control" value="{{graphs.captureService.captureLength()}}" style="width: 75px;" readonly>
