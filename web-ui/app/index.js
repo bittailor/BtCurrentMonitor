@@ -1,2 +1,2 @@
 angular
-    .module('BtCurrentMonitorApp', ['ngStorage', 'ngAria', 'ngAnimate' ,'toaster', 'ngAnimate']);
+    .module('BtCurrentMonitorApp', ['ngStorage', 'ngAria' ,'toaster']);
